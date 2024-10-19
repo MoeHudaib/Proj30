@@ -1,0 +1,32 @@
+
+{{Product.name}} Details
+
+<div class="container mt-5">
+    <h1 class="mb-4">{{ product.name }}</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded">
+        </div>
+        <div class="col-md-6">
+            <h3 class="text-success">Price: ${{ product.unit_cost }}</h3>
+            <p><strong>Unit:</strong> {{ product.get_unit_display }}</p>
+            <p><strong>Description:</strong></p>
+            <p>{{ product.description1 }}</p>
+            <p>{{ product.description2 }}</p>
+
+            <div class="mt-4">
+                <h4>Availability:</h4>
+                <p>{{ product.stocks_on_hand }} in stock</p>
+                {% if product.exp_date %}
+                    <p><strong>Expiration Date:</strong> {{ product.exp_date|date:"F j, Y" }}</p>
+                {% endif %}
+                <p><strong>Source:</strong> {{ product.source }}</p>
+            </div>
+
+            <div class="mt-4">
+            </div>
+        </div>
+    </div>
+</div>
+

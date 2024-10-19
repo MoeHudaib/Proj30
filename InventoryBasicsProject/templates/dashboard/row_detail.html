@@ -1,0 +1,45 @@
+{% extends 'partials/base.html' %}
+{% block title %}    Inventory Layout - Row {{ row_id }} {% endblock %}
+{% block content %}
+<style>
+    .available {
+        background-color: #007bff; /* Blue */
+        color: #fff;
+    }
+    .reserved {
+        background-color: #dc3545; /* Red */
+        color: #fff;
+    }
+    .empty {
+        background-color: #007bff; /* Blue */
+    }
+    .partially-filled {
+        background-color: #28a745; /* Green */
+    }
+</style>
+<div class="container mt-4">
+
+        <h1>Inventory Layout - {{ inventory.name }} - Row {{ row_id }}</h1>
+        <a href="{% url 'dashboard:dashboard-index' %}" class="btn btn-primary">Back to Overview</a>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Column</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for column in columns %}
+                <tr>
+                    <td><a href="{% url 'dashboard:show_column_layout' inventory.id row_id column.column %}">Col {{ column.column }}</a></td>
+                    <td class="{% if column.empty_spaces == 0 %}reserved{% elif column.empty_spaces <= 6 %}partially-filled{% else %}available{% endif %}">
+                        {{ column.empty_spaces }} empty spaces
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% load custom_tags %}
+
+<div class="container mt-4">
+    <a href="{% url 'dashboard:cart_view' %}" class="btn btn-warning mb-3">View Cart</a>
+    <h3 class="mb-4">Product List</h3>
+    
+    <!-- Search Bar -->
+    <div class="mb-4">
+        <input type="text" id="search-input" class="form-control" placeholder="Search for products...">
+    </div>
+
+    <!-- Product List -->
+    <div class="row g-3" id="product-list">
+        {% for product in products %}
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card h-100" data-name="{{ product.name|lower }}">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                <div class="card-header bg-success text-white text-center">
+                    <h5 class="mb-0">{{ product.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ product.description1 }}</p>
+                    <p><strong>Unit Cost:</strong> ${{ product.unit_cost }}</p>
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard:stock_page' product.id %}" class="btn btn-primary btn-sm">View Details</a>
+                        <a href="{% url 'dashboard:add_to_cart' product.id %}" class="btn btn-primary btn-sm">Add to Cart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-12">
+                <p class="text-center">No products available.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <hr>
+
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Orders Records</h5>
+                    <a href="{% url 'dashboard:orders-history' %}" class="btn btn-outline-light btn-sm">View Orders History</a>
+                </div>
+                <div class="card-body">
+                    {% if pending_orders %}
+                    {% for order in pending_orders %}
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Order ID: {{ order.id }}</h5>
+                                <span class="badge {{ order.done|yesno:'bg-success text-white, bg-danger text-white' }}">
+                                    {{ order.done|yesno:"Completed,Pending" }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Date Created:</strong> {{ order.date_created }}</p>
+                                <p><strong>Delivery Date:</strong> {{ order.delivery_date }}</p>
+                                <table class="table table-striped">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th scope="col">Product</th>
+                                            <th scope="col">Category</th>
+                                            <th scope="col">Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for material_order in order.material_orders.all %}
+                                        <tr>
+                                            <td>{{ material_order.material.name }}</td>
+                                            <td>{{ material_order.material.category }}</td>
+                                            <td>{{ material_order.quantity }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <a href="{% url 'dashboard:print_order_requisition' order.id %}" class="btn btn-outline-success btn-sm">Print Order Requisition</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {% else %}
+                        <p>No pending orders.</p>
+                        <a href="{% url 'dashboard:orders-history' %}" class="btn btn-success">View Orders History</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('search-input');
+        const productCards = document.querySelectorAll('.card');
+
+        searchInput.addEventListener('keyup', function () {
+            const filter = searchInput.value.toLowerCase();
+
+            productCards.forEach(card => {
+                const productName = card.getAttribute('data-name');
+                card.style.display = productName.includes(filter) ? '' : 'none';
+            });
+        });
+    });
+</script>

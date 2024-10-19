@@ -1,0 +1,116 @@
+{% extends 'partials/base.html' %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated and user.is_staff and user.is_superuser %}
+
+{% include 'partials/topnav.html' %}
+
+<!-- Stock Movements Overview -->
+<div class="container my-4">
+    <div class="orders-overview">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Stock Movements Overview</h4>
+                <input type="text" id="searchBox" placeholder="Enter Transaction ID" class="form-control mt-2" onkeyup="filterStockMovements()">
+                <div id="noMovementMessage" class="alert alert-warning d-none" role="alert">
+                    No stock movement found with the specified ID.
+                </div>
+            </div>
+            <div class="card-body">
+                {% for message in messages %}
+                {% if message %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                <div class="row" id="stockMovementsList">
+                    {% for smh in smhs %}
+                    <div class="col-md-12 mb-4 stock-movement-item" data-movement-id="{{ smh.id }}">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                                <h5 class="mb-0">Transaction ID: {{ smh.id }}</h5>
+                                <span class="badge bg-secondary">
+                                    {{ smh.movement_type }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Responsible Staff:</strong> {{ smh.responsible_staff.username }}</p>
+                                <p><strong>Date Created:</strong> {{ smh.date_created }}</p>
+                                <p><strong>Transaction Type:</strong> {{ smh.movement_type }}</p>
+                                {% if smh.movement_type == 'procurement' %}
+                                    <p><strong>Source:</strong> {{ smh.source }}</p>
+                                {% elif smh.movement_type == 'fulfillment' %}
+                                    <p><strong>Order Requisition Number:</strong> {{ smh.order_requisition_number.id }}</p>
+                                {% endif %}
+                                <p><strong>Total Price:</strong> ${{ smh.total_price }}</p>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Product</th>
+                                                <th scope="col">Category</th>
+                                                <th scope="col">Quantity</th>
+                                                <th scope="col">Unit Cost</th>
+                                                <th scope="col">Expiration Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for material_order in smh.material_order_reports.all %}
+                                            <tr>
+                                                <td>{{ material_order.material.name }}</td>
+                                                <td>{{ material_order.material.category }}</td>
+                                                <td>{{ material_order.quantity }}</td>
+                                                <td>${{ material_order.material.unit_cost }}</td>
+                                                <td>{{ material_order.expiration_date }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <a href="{% url 'dashboard:print_move_stock' smh.id %}" class="btn btn-outline-success mt-3">
+                                    Print Stock Movement
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function filterStockMovements() {
+        const input = document.getElementById('searchBox');
+        const filter = input.value.toLowerCase();
+        const movements = document.querySelectorAll('.stock-movement-item');
+        const noMovementMessage = document.getElementById('noMovementMessage');
+    
+        let found = false;
+    
+        movements.forEach(movement => {
+            const movementId = movement.getAttribute('data-movement-id');
+            if (movementId.toString().toLowerCase().includes(filter)) {
+                movement.style.display = ''; // Show the stock movement
+                found = true; // Set found to true if there's a match
+            } else {
+                movement.style.display = 'none'; // Hide the stock movement
+            }
+        });
+    
+        // Show or hide the no movement message based on whether any movements were found
+        noMovementMessage.classList.toggle('d-none', found);
+    }
+    </script>
+    
+
+{% endif %}
+
+{% endblock %}

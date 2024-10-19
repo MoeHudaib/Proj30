@@ -1,0 +1,166 @@
+{% extends 'partials/base.html' %}
+
+{% block content %}
+  <div class="container">
+    <h1 class="mb-4">Move Stock Form</h1>
+
+    <form method="POST" id="move-stock-form" class="form-container">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="form-group">
+        {{ form.movement_type.label_tag }}
+        {{ form.movement_type }}
+        {{ form.movement_type.errors }}
+      </div>
+ 
+      <div class="form-group" id="purchase-order-container" class="conditional-field">
+        {{ form.order_requisition_number.label_tag }}
+        {{ form.order_requisition_number }}
+        {{ form.order_requisition_number.errors }}
+      </div>
+      
+      <div class="form-group" id="exp-date-container" class="conditional-field">
+        {{ form.exp_date.label_tag }}
+        {{ form.exp_date }}
+        {{ form.exp_date.errors }}
+      </div>
+
+      <div class="form-group" id="source-container" class="conditional-field">
+        {{ form.source.label_tag }}
+        {{ form.source }}
+        {{ form.source.errors }}
+      </div>
+
+      {{ formset.management_form }}  <!-- This is important for managing formset data -->
+  
+      <div id="formset-container">
+          {% for form in formset %}
+              <div class="formset-row">
+                  {{ form.material.label_tag }} {{ form.material }}
+                  {{ form.quantity.label_tag }} {{ form.quantity }}
+                  <div class="form-group" >
+                  {{ form.expiration_date.label_tag }} {{ form.expiration_date }}
+                </div>
+                  {% if formset.can_delete %}
+                      <button type="button" class="btn btn-danger delete-form">Delete</button>
+                  {% endif %}
+              </div>
+          {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+  </div>
+  
+  <button id="add-form" class="btn btn-primary">Add More</button>
+  
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .form-container {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .form-group .errors {
+      color: #dc3545;
+      margin-top: 5px;
+    }
+
+    .conditional-field {
+      display: none; /* Initially hidden, shown by JS */
+    }
+
+    .formset-row {
+      margin-bottom: 10px;
+    }
+
+    .delete-form {
+      margin-left: 10px;
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let formIndex = {{ formset.total_form_count }};
+        const formsetContainer = document.getElementById('formset-container');
+        const addFormButton = document.getElementById('add-form');
+        const formPrefix = '{{ formset.prefix }}';
+  
+        addFormButton.addEventListener('click', function() {
+            const newForm = formsetContainer.children[0].cloneNode(true);
+  
+            newForm.innerHTML = newForm.innerHTML.replace(new RegExp(formPrefix + '-0', 'g'), formPrefix + '-' + formIndex);
+            
+            newForm.querySelectorAll('input').forEach(input => input.value = '');
+  
+            formIndex++;
+            formsetContainer.appendChild(newForm);
+        });
+  
+        formsetContainer.addEventListener('click', function(e) {
+            if (e.target && e.target.matches('.delete-form')) {
+                e.target.closest('.formset-row').remove();
+            }
+        });
+    });
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var movementTypeField = document.getElementById('id_movement_type');
+      var orderRequisitionContainer = document.getElementById('purchase-order-container');
+      var expDateContainer = document.getElementById('exp-date-container');
+      var sourceContainer = document.getElementById('source-container');
+
+      function toggleConditionalFields() {
+        if (movementTypeField.value === 'fulfillment') {
+          orderRequisitionContainer.style.display = 'block';
+          expDateContainer.style.display = 'none';
+          sourceContainer.style.display = 'none';
+        } else if (movementTypeField.value === 'procurement') {
+          orderRequisitionContainer.style.display = 'none';
+          expDateContainer.style.display = 'block';
+          sourceContainer.style.display = 'block';
+        } else {
+          orderRequisitionContainer.style.display = 'none';
+          expDateContainer.style.display = 'none';
+          sourceContainer.style.display = 'none';
+        }
+      }
+
+      // Initial check when the page loads
+      toggleConditionalFields();
+
+      // Add event listener to handle changes in the movement_type field
+      movementTypeField.addEventListener('change', toggleConditionalFields);
+    });
+  </script>
+{% endblock %}

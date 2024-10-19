@@ -1,0 +1,40 @@
+{% extends 'partials/base.html' %}
+{% block title %} Inventory Management {% endblock %}
+{% block content %}
+{% include 'partials/topnav.html' %}
+            <!-- Inventory Section -->
+            <div class="accordion" id="accordionExample">
+                {% for inventory in inventory_data %}
+                    <div class="card">
+                        <div class="card-header" id="heading{{ inventory.inventory.id }}">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse{{ inventory.inventory.id }}" aria-expanded="true" aria-controls="collapse{{ inventory.inventory.id }}">
+                                    {{ inventory.inventory.name }}
+                                </button>
+                            </h5>
+                        </div>
+
+                        <div id="collapse{{ inventory.inventory.id }}" class="collapse" aria-labelledby="heading{{ inventory.inventory.id }}" data-parent="#accordionExample">
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Empty Spaces</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in inventory.rows %}
+                                            <tr class="{% if row.empty_spaces == 0 %}reserved{% else %}available{% endif %}">
+                                                <td><a href="{% url 'dashboard:show_inventory_layout' inventory.inventory.id row.row %}" class="btn btn-link">Row {{ row.row }}</a></td>
+                                                <td>{{ row.empty_spaces }} empty spaces</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+{% endblock %}

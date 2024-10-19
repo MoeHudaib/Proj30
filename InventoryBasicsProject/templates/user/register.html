@@ -1,0 +1,32 @@
+{% extends "partials/base.html" %}
+{% block title %} Register {% endblock %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Register</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" autocomplete="off" >
+                        {% csrf_token %}
+
+                        
+                        {{ form.as_p }}
+                        
+                        <!-- Submit Button -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success btn-block">Register</button>
+                        </div>
+
+                        <!-- Hidden Field for Next URL -->
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

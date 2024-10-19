@@ -1,0 +1,46 @@
+{% extends 'partials/base.html' %}
+{% block title %}   Inventory Layout - Column {{ column_id }} {% endblock %}
+{% block content %}
+<style>
+    .available {
+        background-color: #007bff; /* Blue */
+        color: #fff;
+    }
+    .reserved {
+        background-color: #dc3545; /* Red */
+        color: #fff;
+    }
+    .empty {
+        background-color: #007bff; /* Blue */
+    }
+    .partially-filled {
+        background-color: #28a745; /* Green */
+    }
+</style>
+
+<div class="container mt-4">
+
+        <h1>Inventory Layout - {{ inventory.name }} - Row {{ row_id }} - Column {{ column_id }}</h1>
+        <a href="{% url 'dashboard:show_inventory_layout' inventory.id row_id %}" class="btn btn-primary">Back to Row</a>
+        <a href="{% url 'dashboard:dashboard-index' %}" class="btn btn-primary">Back to Overview</a>
+
+
+        <table class="table table-bordered">
+            <tbody>
+                {% for layer in layers %}
+                <tr>
+                    <td class="{% if layer.available_layer == 0 %}reserved{% else %}available{% endif %}">
+                        Layer {{ layer.layer_id }}
+                        {% if layer.stock_id %}
+                            (Stock ID: {{ layer.stock_id }})
+                        {% else %}
+                            <span class="empty">Empty</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+</div>
+{% endblock %}

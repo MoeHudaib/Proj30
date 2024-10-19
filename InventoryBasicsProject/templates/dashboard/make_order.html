@@ -1,0 +1,128 @@
+{% extends 'partials/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Create Order Requisition</h1>
+
+    <form method="POST" id="move-stock-form" class="form-container">
+        {% csrf_token %}
+        {{ formset.management_form }} <!-- This is important for managing formset data -->
+
+        <div id="formset-container">
+            {% for form in formset %}
+                <div class="formset-row">
+                    {{ form.material.label_tag }} {{ form.material }} {{ form.material.errors }}
+                    {{ form.quantity.label_tag }} {{ form.quantity }} {{ form.quantity.errors }}
+                    {% if formset.can_delete %}
+                        <button type="button" class="btn btn-danger delete-form">Delete</button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {{ form.non_field_errors }}
+
+        <div class="form-group">
+            {{ form.delivery_date.label_tag }}
+            {{ form.delivery_date }}
+            {{ form.delivery_date.errors }}
+        </div>
+
+        <div class="form-group">
+            {{ form.shipped_via.label_tag }}
+            {{ form.shipped_via }}
+            {{ form.shipped_via.errors }}
+        </div>
+        
+        <div class="form-group">
+            {{ form.payment_terms.label_tag }}
+            {{ form.payment_terms }}
+            {{ form.payment_terms.errors }}
+        </div>
+
+        <button type="submit" class="btn btn-success">Submit</button>
+    </form>
+
+    <div class="card-footer d-flex justify-content-around">
+        <a href="{% url 'dashboard:dashboard-index' %}" class="btn btn-outline-danger">Cancel</a>
+    </div>
+
+    <button id="add-form" class="btn btn-primary">Add More</button>
+</div>
+
+<style>
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .form-container {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  .form-group .errors {
+    color: #dc3545;
+    margin-top: 5px;
+  }
+
+  .formset-row {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .delete-form {
+    margin-left: 10px;
+  }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let formIndex = {{ formset.total_form_count }};
+        const formsetContainer = document.getElementById('formset-container');
+        const addFormButton = document.getElementById('add-form');
+        const formPrefix = '{{ formset.prefix }}';
+  
+        addFormButton.addEventListener('click', function() {
+            const newForm = formsetContainer.children[0].cloneNode(true);
+  
+            newForm.innerHTML = newForm.innerHTML.replace(new RegExp(formPrefix + '-0', 'g'), formPrefix + '-' + formIndex);
+            
+            newForm.querySelectorAll('input').forEach(input => input.value = '');
+  
+            formIndex++;
+            formsetContainer.appendChild(newForm);
+        });
+  
+        formsetContainer.addEventListener('click', function(e) {
+            if (e.target && e.target.matches('.delete-form')) {
+                e.target.closest('.formset-row').remove();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'partials/base.html' %}
+
+{% block title %} product page {% endblock %}
+
+{% block content %}
+{% if user.is_superuser%}
+{% include 'partials/topnav.html' %}
+<div class="container mt-4">
+    <header>
+        <h1>Add New Category</h1>
+        <a href="{% url 'dashboard:dashboard-index' %}" class="btn btn-primary">Back to Overview</a>
+    </header>
+    <main>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </main>
+</div>
+{% endif %}
+{% endblock %}

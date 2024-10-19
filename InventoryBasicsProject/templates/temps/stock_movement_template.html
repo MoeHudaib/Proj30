@@ -1,0 +1,116 @@
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ move_stock.movement_type }} Transaction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .header, .footer {
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .footer {
+            border-top: 1px solid #ddd;
+            border-bottom: none;
+            margin-top: 20px;
+        }
+        .order-details {
+            margin-top: 20px;
+        }
+        .order-details p {
+            margin: 0;
+            padding: 5px 0;
+        }
+        .order-details table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .order-details th, .order-details td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+        }
+        .order-details th {
+            background-color: #f4f4f4;
+        }
+        .order-details td:nth-child(2), .order-details th:nth-child(2) {
+            text-align: left;
+        }
+        .total-row td {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Transaction Document</h1>
+        </div>
+
+        <div class="order-details">
+            <p><strong>Transaction Number:</strong> {{ move_stock.id }}</p>
+            <p><strong>Responsible:</strong> {{ move_stock.responsible_staff }}</p>
+            <p><strong>Transaction Date:</strong> {{ move_stock.date_created }}</p>
+            <p><strong>Transaction Type:</strong> {{ move_stock.movement_type }}</p>
+            {% if move_stock.source %}
+                <p><strong>Source:</strong> {{ move_stock.source }}</p>
+            {% endif %}    
+            {% if move_stock.order_requisition_number %}    
+                <p><strong>Order Requisition No.:</strong> {{ move_stock.order_requisition_number.id }}</p>
+            {% endif %}
+            <hr>
+            <h2>Items</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Material Number</th>
+                        <th>Material Name</th>
+                        {% if move_stock.exp_date %}
+                            <th>Exp Date</th>
+                        {% endif %}
+                        <th>Description</th>
+                        <th>Unit Type</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for material in material_orders %}
+                        <tr>
+                            <td>{{ material.material.vocab_no }}</td>
+                            <td>{{ material.material.name }}</td>
+                            <td> {{ material.expiration_date }}</td>
+                            <td>{{ material.material.description1 }}</td>
+                            <td>{{ material.material.unit }}</td>
+                            <td>{{ material.material.unit_cost|floatformat:2 }}</td>
+                            <td>{{ material.quantity }}</td>
+                        </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="{% if move_stock.exp_date %}7{% else %}6{% endif %}"><strong>Total Price:</strong></td>
+                        <td>{{ move_stock.total_price }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for your business!</p>
+        </div>
+    </div>
+</body>
+</html>

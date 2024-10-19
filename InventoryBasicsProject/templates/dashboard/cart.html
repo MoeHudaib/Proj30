@@ -1,0 +1,94 @@
+{% extends 'partials/base.html' %}
+{% block title %} Cart {% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+<div class="container mt-4">
+    <h3 class="mb-4">Your Shopping Cart</h3>
+
+    {% if cart_items %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="cart-items">
+                    {% for item in cart_items %}
+                        <tr data-item-id="{{ item.id }}">
+                            <td>{{ item.product.name }}</td>
+                            <td>
+                                <form method="post" enctype="multipart/form-data" action="{% url 'dashboard:update_cart_item' item.id %}" class="quantity-form">
+                                    {% csrf_token %}
+                                    <input type="number" name="quantity" class="form-control quantity-input" 
+                                           step="1" value="{{ item.quantity }}" min="1" data-price="{{ item.price }}">
+                                </form>
+                            </td>
+                            <td>${{ item.price }}</td>
+                            <td>
+                                <a href="{% url 'dashboard:remove_cart_item' item.id %}" class="btn btn-danger btn-sm">Remove</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h5>Total Items: <span id="total-items">{{ cart.total_items }}</span></h5>
+        <h5>Total Price: $<span id="total-price">{{ cart.total_price }}</span></h5>
+        <a href="" class="btn btn-success">Proceed to Checkout</a>
+    {% else %}
+        <p class="text-center">Your cart is empty.</p>
+    {% endif %}
+</div>
+
+<script>
+    function updateTotalPrice() {
+        let total = 0;
+        let totalItems = 0;
+
+        document.querySelectorAll('.quantity-input').forEach(function(input) {
+            const quantity = parseInt(input.value);
+            const price = parseFloat(input.getAttribute('data-price'));
+            const itemTotal = price * quantity;
+            total += itemTotal;
+            totalItems += quantity; // Count total items
+        });
+
+        document.getElementById('total-price').innerText = total.toFixed(2) + ' JOD';
+        document.getElementById('total-items').innerText = totalItems; // Update total items in the DOM
+
+        // Save to local storage
+        localStorage.setItem('totalItems', totalItems);
+        localStorage.setItem('totalPrice', total.toFixed(2));
+        
+        // Save each item quantity and price
+        const cartData = {};
+        document.querySelectorAll('.quantity-input').forEach(function(input) {
+            const itemId = input.closest('tr').getAttribute('data-item-id');
+            cartData[itemId] = {
+                quantity: parseInt(input.value),
+                price: parseFloat(input.getAttribute('data-price'))
+            };
+        });
+        localStorage.setItem('cartData', JSON.stringify(cartData));
+    }
+
+    document.querySelectorAll('.quantity-input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            // Automatically submit the form when quantity changes
+            const form = input.closest('.quantity-form');
+            form.submit();
+        });
+
+        // Also attach the updateTotalPrice function
+        input.addEventListener('input', updateTotalPrice);
+    });
+
+    updateTotalPrice(); // Initial calculation
+</script>
+{% endblock %}

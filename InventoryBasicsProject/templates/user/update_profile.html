@@ -1,0 +1,62 @@
+{% extends 'partials/base.html' %}
+{% block title %}Update Profile{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Update Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- User Form Fields -->
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Username</label>
+                            {{ user_form.username.errors }}
+                            <input type="text" name="username" id="id_username" class="form-control" value="{{ user_form.username.value }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">Email</label>
+                            {{ user_form.email.errors }}
+                            <input type="email" name="email" id="id_email" class="form-control" value="{{ user_form.email.value }}">
+                        </div>
+
+                        <!-- Profile Form Fields -->
+                        <div class="mb-3">
+                            <label for="id_phone" class="form-label">Phone</label>
+                            {{ profile_form.phone.errors }}
+                            <input type="text" name="phone" id="id_phone" class="form-control" value="{{ profile_form.phone.value }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_address" class="form-label">Address</label>
+                            {{ profile_form.address.errors }}
+                            <textarea name="address" id="id_address" class="form-control">{{ profile_form.address.value }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_image" class="form-label">Profile Image</label>
+                            {{ profile_form.image.errors }}
+                            <input type="file" name="image" id="id_image" class="form-control">
+                            {% if request.user.profile.image %}
+                                <img src="{{ request.user.profile.image.url }}" alt="Profile Image" class="img-fluid mt-2" style="max-height: 200px;">
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Submit and Cancel Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'user:user-profile' %}" class="btn btn-danger ">Cancel</a>
+                            <button type="submit" class="btn btn-success ">Update</button>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

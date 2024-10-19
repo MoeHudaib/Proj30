@@ -1,0 +1,279 @@
+{% extends 'partials/base.html' %}
+
+{% block title %} Home Page {% endblock %}
+
+{% block content %}
+{% if user.is_authenticated and user.is_staff and user.is_superuser %}
+
+    {% for message in messages %}
+        {% if message %}
+            <div class="alert alert-{{ message.tags }} my-2">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% include 'partials/topnav.html' %}
+
+    <div class="container mt-4">
+
+        <!-- Low Stock and Expiry Display -->
+        <div class="container my-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Low Stock Alerts</h4>
+                    <div class="card">
+                        <div class="card-body">
+                            {% if low_stock_items %}
+                                <ul class="list-group">
+                                    {% for item in low_stock_items %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ item.name }} - Current Stock: {{ item.stocks_availability }}
+                                            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#lowStockModal">Report</button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>No low stock items.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="col-md-6">
+                    <h4>Expiry Notifications</h4>
+                    <div class="card">
+                        <div class="card-body">
+                            {% if expiring_items %}
+                                <ul class="list-group">
+                                    {% for item in expiring_items %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ item.material.name }} - Expiration Date: {{ item.expiration_date }} - Quantity: {{ item.quantity }}
+                                            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#expiryModal">Report</button>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>No items nearing expiration.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Low Stock Reporting -->
+        <div class="modal fade" id="lowStockModal" tabindex="-1" aria-labelledby="lowStockModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="lowStockModalLabel">Low Stock Items</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="lowStockReportForm">
+                            <ul class="list-group">
+                                {% for item in low_stock_items %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.name }}
+                                        <input type="checkbox" name="items" value="{{ item.id }}">
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <input type="hidden" name="issue_type" value="low_stock">
+                            <button type="button" class="btn btn-warning mt-3" id="reportLowStock">Report Low Stock</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graph Section -->
+        <div class="row my-5">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <canvas id="myChart1" width="400" height="300"></canvas>
+                        <script>
+                            var ctx = document.getElementById('myChart1').getContext('2d');
+                            var orderLabels = {{ order_labels|safe }};
+                            var orderData = {{ order_data|safe }};
+                            var colors = {{ colors|safe }};
+        
+                            var myChart1 = new Chart(ctx, {
+                                type: 'pie',
+                                data: {
+                                    labels: orderLabels,
+                                    datasets: [{
+                                        label: 'Order Requisitions',
+                                        data: orderData,
+                                        backgroundColor: colors,
+                                        borderColor: colors,
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                        },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(tooltipItem) {
+                                                    var index = tooltipItem.dataIndex;
+                                                    return orderLabels[index] + ': ' + orderData[index] + ' units';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <canvas id="myChart" width="400" height="300"></canvas>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                var ctx = document.getElementById('myChart').getContext('2d');
+                                
+                                var labels = [{% for product in products %}'{{ product.name }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+                                var data = [{% for product in products %}{{ product.stocks_availability }}{% if not forloop.last %}, {% endif %}{% endfor %}];
+                                var backgroundColors = [{% for color in p_color_list %}'{{ color }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+                                
+                                // Ensure data is not empty
+                                if (labels.length === 0 || data.length === 0) {
+                                    console.error('No data available for the chart.');
+                                    return; // Exit if no data
+                                }
+
+                                // Minimum value for visibility
+                                var minValue = Math.min(...data);
+                                var yAxisMin = minValue < 1 ? 1 : 0; // Set minimum to 1 if all values are 0 or less
+
+                                var myChart = new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: labels,
+                                        datasets: [{
+                                            label: 'Product Availability',
+                                            data: data,
+                                            backgroundColor: backgroundColors,
+                                            borderColor: backgroundColors,
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                min: yAxisMin // Set minimum y-axis value
+                                            }
+                                        },
+                                        plugins: {
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function(context) {
+                                                        return context.dataset.label + ': ' + context.raw + ' units';
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Expiry Reporting -->
+        <div class="modal fade" id="expiryModal" tabindex="-1" aria-labelledby="expiryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="expiryModalLabel">Expiring Items</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="expiryReportForm">
+                            <ul class="list-group">
+                                {% for item in expiring_items %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        {{ item.material.name }}
+                                        <input type="checkbox" name="items" value="{{ item.id }}">
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <input type="hidden" name="issue_type" value="expiry">
+                            <button type="button" class="btn btn-danger mt-3" id="reportExpiry">Report Expiry</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Low Stock Reporting
+                document.getElementById('reportLowStock').addEventListener('click', function() {
+                    const form = document.getElementById('lowStockReportForm');
+                    const formData = new FormData(form);
+
+                    fetch("{% url 'dashboard:report_stock_issue' %}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        if (data.status === 'success') {
+                            $('#lowStockModal').modal('hide');  // Close the modal
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+
+                // Expiry Reporting
+                document.getElementById('reportExpiry').addEventListener('click', function() {
+                    const form = document.getElementById('expiryReportForm');
+                    const formData = new FormData(form);
+
+                    fetch("{% url 'dashboard:report_stock_issue' %}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        if (data.status === 'success') {
+                            $('#expiryModal').modal('hide');  // Close the modal
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        </script>
+    </div>
+{% else %}
+    {% include 'dashboard/staff_index.html' %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "partials/base.html" %}
+{% block title %} Logout {% endblock %}
+{% block content %}
+<div class="container mt-5">
+    {% csrf_token %}
+    <p class="alert alert-info">You have been logged out. Thank you for visiting!</p>
+</div>
+{% endblock content %}

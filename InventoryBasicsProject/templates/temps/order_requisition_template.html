@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Requisition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .header, .footer {
+            text-align: center;
+        }
+        .order-details {
+            margin-top: 20px;
+        }
+        .order-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-details th, .order-details td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .order-details th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Requisition</h1>
+        </div>
+
+        <div class="order-details">
+            <p><strong>Order Number:</strong> {{ order_requisition.id }}</p>
+            <p><strong>Staff:</strong> {{ order_requisition.staff }}</p>
+            <p><strong>Delivery Date:</strong> {{ order_requisition.delivery_date }}</p>
+            <p><strong>Shipped Via:</strong> {{ order_requisition.get_shipped_via_display }}</p>
+            <p><strong>Payment Terms:</strong> {{ order_requisition.get_payment_terms_display }}</p>
+
+            <h2>Items</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Material Name</th>
+                        <th>Description</th>
+                        <th>Unit Type</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for material_order in material_orders %}
+                    <tr>
+                        <td>{{ material_order.material.name }}</td>
+                        <td>{{ material_order.material.description1 }}</td>
+                        <td>{{ material_order.material.unit }}</td>
+                        <td>{{ material_order.material.unit_cost }}</td>
+                        <td>{{ material_order.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="5"><strong>Total Price:</strong></td>
+                        <td>{{ order_requisition.total_price|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for your business!</p>
+        </div>
+    </div>
+</body>
+</html>

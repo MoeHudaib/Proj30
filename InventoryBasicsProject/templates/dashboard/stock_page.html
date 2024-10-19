@@ -1,0 +1,77 @@
+{% extends 'partials/base.html' %}
+{% block title %} {{ stock.name }} Page {% endblock %}
+{% block content %}
+{% if user.is_authenticated and user.is_staff and user.is_superuser %}
+
+<div class="container mt-5">
+    <h1 class="display-4">{{ stock.name }} Page</h1>
+    <h2 class="mt-4">Next to be sold:</h2>
+
+    <div class="list-group mb-5">
+        {% for material in material_orders %}
+            <div class="list-group-item">
+                <h5 class="mb-1">{{ material.material.name }}</h5>
+                <p class="mb-1">Quantity: {{ material.quantity }}</p>
+                <p class="mb-1">Expiration Date: {{ material.expiration_date }}</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="mt-5">Product Revenue Over Time</h2>
+    <div id="revenueChart"></div>
+
+    <h2 class="mt-5">Sales Frequency</h2>
+    <div id="salesFrequencyChart"></div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Pass the actual revenue and sales frequency data from the Django context
+const revenueData = {{ revenue_data|safe }}; // Safe to allow rendering as JavaScript array
+const salesFrequencyData = {{ sales_frequency_data|safe }}; // Safe to allow rendering as JavaScript array
+
+// Create the line chart for revenue
+const revenueTrace = {
+    x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    y: revenueData,
+    mode: 'lines+markers',
+    type: 'scatter',
+    name: 'Revenue',
+};
+
+const revenueLayout = {
+    title: 'Product Revenue Over Time',
+    xaxis: {
+        title: 'Months',
+    },
+    yaxis: {
+        title: 'Revenue',
+    },
+};
+
+Plotly.newPlot('revenueChart', [revenueTrace], revenueLayout);
+
+// Create the bar chart for sales frequency
+const frequencyTrace = {
+    x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    y: salesFrequencyData,
+    type: 'bar',
+    name: 'Sales Frequency',
+};
+
+const frequencyLayout = {
+    title: 'Sales Frequency by Month',
+    xaxis: {
+        title: 'Months',
+    },
+    yaxis: {
+        title: 'Number of Sales',
+    },
+};
+
+Plotly.newPlot('salesFrequencyChart', [frequencyTrace], frequencyLayout);
+</script>
+{% else %}
+{% include 'dashboard/staff_stock_page.html' %}
+{% endif %}
+{% endblock %}

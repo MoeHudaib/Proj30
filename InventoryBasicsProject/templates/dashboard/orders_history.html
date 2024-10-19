@@ -1,0 +1,55 @@
+{% extends 'partials/base.html' %}
+
+{% block title %} Order History {% endblock %}
+
+{% block content %}
+{% load custom_tags %}
+
+<div class="container">
+    <div class="row mt-4">
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Orders Records
+                </div>
+                <div class="card-body">
+                    {% for order in orders %}
+                        <div class="card mb-3">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Order ID: {{ order.id }}</h5>
+                                <span class="badge {{ order.done|yesno:'bg-success text-white, bg-danger text-white' }}">
+                                    {{ order.done|yesno:"Completed,Pending" }}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Date Created:</strong> {{ order.date_created}}</p>
+                                <p><strong>Delivery Date:</strong> {{ order.delivery_date }}</p>
+                                <table class="table table-striped bg-white">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th scope="col">Product</th>
+                                            <th scope="col">Category</th>
+                                            <th scope="col">Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for material_order in order.material_orders.all %}
+                                            <tr>
+                                                <td>{{ material_order.material.name }}</td>
+                                                <td>{{ material_order.material.category }}</td>
+                                                <td>{{ material_order.quantity }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <a href="{% url 'dashboard:print_order_requisition' order.id %}" class="btn btn-outline-success">Print Order Requisition</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
